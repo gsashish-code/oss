@@ -4,6 +4,8 @@ import type { VirtualizerOptions, VirtualizerState, ScrollToIndexOptions } from 
 
 export interface UseVirtualizerResult extends VirtualizerState {
   virtualizer: Virtualizer
+  /** Attach to the scroll container element. Required — without it nothing renders. */
+  scrollRef: (el: Element | null) => void
   measureRef: (index: number) => (el: Element | null) => void
   scrollToIndex: (opts: ScrollToIndexOptions) => void
 }
@@ -11,13 +13,7 @@ export interface UseVirtualizerResult extends VirtualizerState {
 export function useVirtualizer(options: VirtualizerOptions): UseVirtualizerResult {
   const virtualizerRef = useRef<Virtualizer | null>(null)
   const containerRef = useRef<Element | null>(null)
-  const optionsRef = useRef(options)
-
-  // Keep options in sync without re-creating the virtualizer
-  useEffect(() => {
-    optionsRef.current = options
-    virtualizerRef.current?.updateOptions(options)
-  })
+  const prevCountRef = useRef(options.count)
 
   if (!virtualizerRef.current) {
     virtualizerRef.current = new Virtualizer(options)
@@ -25,10 +21,19 @@ export function useVirtualizer(options: VirtualizerOptions): UseVirtualizerResul
 
   const virtualizer = virtualizerRef.current
 
+  // Sync count changes without touching the stabilised refs below.
+  // No dependency array here is intentional, but state caching in Virtualizer
+  // ensures getState() returns the same reference when nothing changes, so
+  // useSyncExternalStore never schedules a spurious re-render.
+  useEffect(() => {
+    if (options.count !== prevCountRef.current) {
+      prevCountRef.current = options.count
+      virtualizer.updateOptions(options)
+    }
+  })
+
   const subscribe = useCallback(
-    (onStoreChange: () => void) => {
-      return virtualizer.subscribe(onStoreChange)
-    },
+    (onStoreChange: () => void) => virtualizer.subscribe(onStoreChange),
     [virtualizer],
   )
 
@@ -36,7 +41,6 @@ export function useVirtualizer(options: VirtualizerOptions): UseVirtualizerResul
 
   const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
-  // Mount/unmount the virtualizer when the scroll container mounts
   const scrollRef = useCallback(
     (el: Element | null) => {
       if (el === containerRef.current) return
@@ -47,7 +51,6 @@ export function useVirtualizer(options: VirtualizerOptions): UseVirtualizerResul
     [virtualizer],
   )
 
-  // Per-item ref callback for dynamic size measurement
   const measureRef = useCallback(
     (index: number) => (el: Element | null) => {
       if (el) virtualizer.measureItem(index, el)
@@ -60,8 +63,5 @@ export function useVirtualizer(options: VirtualizerOptions): UseVirtualizerResul
     [virtualizer],
   )
 
-  // Expose scrollRef on the state so callers can wire up the container
-  ;(state as VirtualizerState & { scrollRef: typeof scrollRef }).scrollRef = scrollRef
-
-  return { ...state, virtualizer, measureRef, scrollToIndex }
+  return { ...state, virtualizer, scrollRef, measureRef, scrollToIndex }
 }
