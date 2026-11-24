@@ -1,0 +1,57 @@
+import React, { type CSSProperties, type ReactNode } from 'react'
+import { useVirtualizer } from './useVirtualizer.js'
+import type { VirtualizerOptions } from '../types.js'
+
+export interface VirtualListProps
+  extends Omit<VirtualizerOptions, 'getScrollElement'> {
+  height: number | string
+  width?: number | string
+  renderItem: (index: number) => ReactNode
+  className?: string
+  style?: CSSProperties
+  itemClassName?: string
+}
+
+export function VirtualList({
+  height,
+  width = '100%',
+  renderItem,
+  className,
+  style,
+  itemClassName,
+  ...virtualizerOptions
+}: VirtualListProps) {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+
+  const { items, totalSize, measureRef } = useVirtualizer({
+    ...virtualizerOptions,
+    getScrollElement: () => containerRef.current,
+  })
+
+  return (
+    <div
+      ref={containerRef}
+      className={className}
+      style={{ height, width, overflow: 'auto', position: 'relative', ...style }}
+    >
+      <div style={{ height: totalSize, width: '100%', position: 'relative' }}>
+        {items.map((item) => (
+          <div
+            key={item.key}
+            ref={measureRef(item.index)}
+            className={itemClassName}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              transform: `translateY(${item.start}px)`,
+            }}
+          >
+            {renderItem(item.index)}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
