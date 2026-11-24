@@ -1,0 +1,816 @@
+<title>@gsashish/virtual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* ── Layout: left-hero + right-demo split, features grid beneath ── */
+:root {
+  --bg:        #faf8f5;
+  --bg-2:      #f1ede6;
+  --bg-3:      #e8e2d8;
+  --fg:        #1a1714;
+  --fg-2:      #6b6358;
+  --fg-3:      #a89c8e;
+  --accent:    #c4530a;
+  --accent-h:  #a84008;
+  --accent-bg: #fce9d4;
+  --accent-fg: #7a2e05;
+  --border:    #e0d9cf;
+  --code-bg:   #f4f0e8;
+  --radius:    8px;
+
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #0d0b09;
+    --bg-2:      #181410;
+    --bg-3:      #24201a;
+    --fg:        #f0ebe2;
+    --fg-2:      #9a8f80;
+    --fg-3:      #605a52;
+    --accent:    #f4845f;
+    --accent-h:  #f9a07a;
+    --accent-bg: #2d1a0e;
+    --accent-fg: #f4845f;
+    --border:    #2a2420;
+    --code-bg:   #181410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #0d0b09;
+  --bg-2:      #181410;
+  --bg-3:      #24201a;
+  --fg:        #f0ebe2;
+  --fg-2:      #9a8f80;
+  --fg-3:      #605a52;
+  --accent:    #f4845f;
+  --accent-h:  #f9a07a;
+  --accent-bg: #2d1a0e;
+  --accent-fg: #f4845f;
+  --border:    #2a2420;
+  --code-bg:   #181410;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Figtree', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+
+/* ── Nav ── */
+nav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-block: 14px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+}
+.nav-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+  text-decoration: none;
+}
+.nav-logo span { color: var(--accent); }
+.nav-links { display: flex; align-items: center; gap: 8px; }
+.btn-sm {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--fg-2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color .15s, color .15s;
+  white-space: nowrap;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm.accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-sm.accent:hover { background: var(--accent-h); border-color: var(--accent-h); }
+
+/* ── Hero ── */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  padding-block: 64px;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+@media (max-width: 800px) {
+  .hero { grid-template-columns: 1fr; gap: 40px; padding-block: 48px; }
+}
+
+.hero-text {}
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent-fg);
+  background: var(--accent-bg);
+  padding: 4px 10px;
+  border-radius: 100px;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.08;
+  margin: 0 0 20px;
+  text-wrap: balance;
+  letter-spacing: -.02em;
+}
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero-desc {
+  font-size: 17px;
+  color: var(--fg-2);
+  margin: 0 0 32px;
+  max-width: 44ch;
+  line-height: 1.65;
+}
+.install-box {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--fg-2);
+  margin-bottom: 24px;
+  max-width: 360px;
+}
+.install-box code { flex: 1; color: var(--fg); min-width: 0; }
+.copy-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fg-3);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex; align-items: center;
+  transition: color .15s;
+}
+.copy-btn:hover { color: var(--accent); }
+.copy-btn svg { display: block; }
+.hero-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  color: var(--fg-2);
+  letter-spacing: .03em;
+}
+
+/* ── Live Demo ── */
+.demo-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+.demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-3);
+}
+.demo-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-2);
+}
+.demo-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--fg-3);
+}
+.demo-counter strong {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.demo-scroller {
+  height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  scroll-behavior: auto;
+}
+.demo-spacer { position: relative; width: 100%; }
+.demo-item {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+  font-size: 13px;
+  overflow: hidden;
+}
+.item-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: 'Syne', sans-serif;
+}
+.item-info { flex: 1; min-width: 0; }
+.item-name { font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-sub { font-size: 11px; color: var(--fg-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-index {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--fg-3);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Stats strip ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+}
+.stat {
+  background: var(--bg);
+  padding: 32px 24px;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-label { font-size: 13px; color: var(--fg-2); margin-top: 4px; }
+
+/* ── Features ── */
+.section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-block: 64px;
+}
+.section-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin-bottom: 8px;
+}
+.section h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin: 0 0 40px;
+  text-wrap: balance;
+}
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.feature {
+  padding: 24px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.feature-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--accent-bg);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+  color: var(--accent);
+}
+.feature h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  letter-spacing: -.01em;
+}
+.feature p { font-size: 13.5px; color: var(--fg-2); margin: 0; line-height: 1.6; }
+
+/* ── Code ── */
+.code-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-block: 0 64px;
+}
+.code-section h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin: 0 0 24px;
+}
+.code-wrap {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.code-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  gap: 0;
+  overflow-x: auto;
+}
+.code-tab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 10px 16px;
+  color: var(--fg-3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  transition: color .15s;
+}
+.code-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.code-pane { display: none; }
+.code-pane.active { display: block; }
+pre {
+  margin: 0;
+  padding: 24px;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+}
+pre code { color: var(--fg); background: none; padding: 0; }
+.kw { color: #d94c2c; }   /* keyword */
+.fn { color: #7c6fcd; }   /* function name */
+.str { color: #4a9550; }  /* string */
+.ty { color: #c4530a; }   /* type/component */
+.cm { color: var(--fg-3); font-style: italic; }  /* comment */
+.nm { color: var(--fg); } /* normal */
+
+/* dark mode adjustments for syntax */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .kw { color: #ff7c72; }
+  :root:not([data-theme="light"]) .fn { color: #b4a9e8; }
+  :root:not([data-theme="light"]) .str { color: #7ecb85; }
+  :root:not([data-theme="light"]) .ty { color: #f4845f; }
+}
+:root[data-theme="dark"] .kw { color: #ff7c72; }
+:root[data-theme="dark"] .fn { color: #b4a9e8; }
+:root[data-theme="dark"] .str { color: #7ecb85; }
+:root[data-theme="dark"] .ty { color: #f4845f; }
+
+/* ── CTA ── */
+.cta-band {
+  background: var(--bg-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+}
+.cta-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px max(24px, env(safe-area-inset-left, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.cta-text h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin: 0 0 4px;
+  text-wrap: balance;
+}
+.cta-text p { font-size: 15px; color: var(--fg-2); margin: 0; }
+.cta-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Figtree', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: .15s;
+  color: var(--fg-2);
+  background: var(--bg);
+}
+.btn:hover { border-color: var(--fg-2); color: var(--fg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-h); border-color: var(--accent-h); }
+
+/* ── Footer ── */
+footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-block: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--fg-3);
+}
+footer a { color: var(--fg-3); text-decoration: none; }
+footer a:hover { color: var(--accent); }
+.footer-logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+.footer-logo span { color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo"><span>@gsashish</span>/virtual</a>
+  <div class="nav-links">
+    <a class="btn-sm" href="https://github.com/gsashish-code/oss" target="_blank" rel="noopener">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+    <a class="btn-sm accent" href="https://www.npmjs.com/package/@gsashish/virtual" target="_blank" rel="noopener">npm</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-text">
+    <div class="eyebrow">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M6 3v3l2 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      v0.1.0 · MIT
+    </div>
+    <h1>Render <em>50,000 items</em> like it's nothing.</h1>
+    <p class="hero-desc">
+      A tiny virtualization engine for lists, grids, masonry and reverse chat scroll.
+      Dynamic heights. Zero dependencies. Under 6 kB.
+    </p>
+    <div class="install-box">
+      <code id="install-cmd">npm install @gsashish/virtual</code>
+      <button class="copy-btn" onclick="copyInstall(this)" title="Copy">
+        <svg id="copy-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="5" width="8" height="9" rx="1.5"/>
+          <path d="M3 11V3.5A1.5 1.5 0 014.5 2H11"/>
+        </svg>
+      </button>
+    </div>
+    <div class="hero-badges">
+      <span class="badge">TypeScript</span>
+      <span class="badge">React 18+</span>
+      <span class="badge">Framework-agnostic core</span>
+      <span class="badge">< 6 kB gzip</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="demo-card">
+      <div class="demo-header">
+        <span class="demo-title">Live demo — 50,000 items</span>
+        <span class="demo-counter"><strong id="dom-count">0</strong> in DOM</span>
+      </div>
+      <div class="demo-scroller" id="scroller">
+        <div class="demo-spacer" id="spacer"></div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--fg-3);margin:8px 0 0;text-align:right;font-family:'JetBrains Mono',monospace;">
+      scroll position: <span id="scroll-pos" style="font-variant-numeric:tabular-nums">0</span>px
+    </p>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-num">≤6</div><div class="stat-label">kB gzipped</div></div>
+  <div class="stat"><div class="stat-num">0</div><div class="stat-label">dependencies</div></div>
+  <div class="stat"><div class="stat-num">60</div><div class="stat-label">fps scrolling</div></div>
+</div>
+
+<!-- FEATURES -->
+<div class="section">
+  <div class="section-eyebrow">What's inside</div>
+  <h2>Everything you need. Nothing you don't.</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="14" height="4" rx="1"/><rect x="3" y="9" width="14" height="4" rx="1" opacity=".5"/><rect x="3" y="15" width="14" height="2" rx="1" opacity=".25"/></svg>
+      </div>
+      <h3>VirtualList</h3>
+      <p>Static or dynamic row heights. ResizeObserver keeps sizes accurate as content changes.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1" opacity=".6"/><rect x="3" y="11" width="6" height="6" rx="1" opacity=".6"/><rect x="11" y="11" width="6" height="6" rx="1" opacity=".3"/></svg>
+      </div>
+      <h3>VirtualGrid</h3>
+      <p>Row and column virtualization. Only the cells in view are mounted — no wasted renders.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 17V3M4 11l6 6 6-6"/></svg>
+      </div>
+      <h3>Chat scroll</h3>
+      <p>Anchored-to-bottom mode. Prepend history without jumping. Stick-to-bottom when new messages arrive.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 10h14M7 6l-4 4 4 4M13 6l4 4-4 4"/></svg>
+      </div>
+      <h3>Framework-free core</h3>
+      <p>The <code style="font-family:'JetBrains Mono',monospace;font-size:12px">Virtualizer</code> class has zero dependencies. The React adapter is an optional layer on top.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CODE -->
+<div class="code-section">
+  <h2>As simple as it gets</h2>
+  <div class="code-wrap">
+    <div class="code-tabs">
+      <button class="code-tab active" onclick="switchTab(this,'tab-list')">VirtualList</button>
+      <button class="code-tab" onclick="switchTab(this,'tab-hook')">useVirtualizer</button>
+      <button class="code-tab" onclick="switchTab(this,'tab-chat')">Chat scroll</button>
+    </div>
+    <div class="code-pane active" id="tab-list">
+<pre><code><span class="kw">import</span> <span class="nm">{ VirtualList }</span> <span class="kw">from</span> <span class="str">'@gsashish/virtual/react'</span>
+
+<span class="kw">const</span> <span class="nm">rows</span> <span class="nm">=</span> <span class="ty">Array</span><span class="nm">.from({ length: 100_000 }, (_, i) =></span> <span class="str">`Row <span class="nm">${i}</span>`</span><span class="nm">)</span>
+
+<span class="kw">export function</span> <span class="fn">App</span><span class="nm">() {</span>
+  <span class="kw">return</span> <span class="nm">(</span>
+    <span class="nm">&lt;</span><span class="ty">VirtualList</span>
+      <span class="nm">count={rows.length}</span>
+      <span class="nm">estimateSize={() => 48}</span>
+      <span class="nm">height={600}</span>
+      <span class="nm">renderItem={(index) => (</span>
+        <span class="nm">&lt;</span><span class="ty">div</span> <span class="nm">className=</span><span class="str">"row"</span><span class="nm">&gt;{rows[index]}&lt;/</span><span class="ty">div</span><span class="nm">&gt;</span>
+      <span class="nm">)}</span>
+    <span class="nm">/&gt;</span>
+  <span class="nm">)</span>
+<span class="nm">}</span></code></pre>
+    </div>
+    <div class="code-pane" id="tab-hook">
+<pre><code><span class="kw">import</span> <span class="nm">{ useRef }</span> <span class="kw">from</span> <span class="str">'react'</span>
+<span class="kw">import</span> <span class="nm">{ useVirtualizer }</span> <span class="kw">from</span> <span class="str">'@gsashish/virtual/react'</span>
+
+<span class="kw">export function</span> <span class="fn">List</span><span class="nm">({ items }) {</span>
+  <span class="kw">const</span> <span class="nm">ref =</span> <span class="fn">useRef</span><span class="nm">(</span><span class="kw">null</span><span class="nm">)</span>
+  <span class="kw">const</span> <span class="nm">{ items: rows, totalSize, measureRef } =</span> <span class="fn">useVirtualizer</span><span class="nm">({</span>
+    <span class="nm">count: items.length,</span>
+    <span class="nm">estimateSize: (i) => items[i].height ?? 48,</span>
+    <span class="nm">getScrollElement: () => ref.current,</span>
+  <span class="nm">})</span>
+
+  <span class="kw">return</span> <span class="nm">(</span>
+    <span class="nm">&lt;</span><span class="ty">div</span> <span class="nm">ref={ref} style={{ height: 600, overflow:</span> <span class="str">'auto'</span> <span class="nm">}}&gt;</span>
+      <span class="nm">&lt;</span><span class="ty">div</span> <span class="nm">style={{ height: totalSize, position:</span> <span class="str">'relative'</span> <span class="nm">}}&gt;</span>
+        <span class="nm">{rows.map((row) => (</span>
+          <span class="nm">&lt;</span><span class="ty">div</span> <span class="nm">key={row.key} ref={measureRef(row.index)}</span>
+            <span class="nm">style={{ position:</span> <span class="str">'absolute'</span><span class="nm">, top: 0, width:</span> <span class="str">'100%'</span><span class="nm">,</span>
+              <span class="nm">transform:</span> <span class="str">`translateY(${row.start}px)`</span> <span class="nm">}}&gt;</span>
+            <span class="nm">{items[row.index].text}</span>
+          <span class="nm">&lt;/</span><span class="ty">div</span><span class="nm">&gt;</span>
+        <span class="nm">))}</span>
+      <span class="nm">&lt;/</span><span class="ty">div</span><span class="nm">&gt;</span>
+    <span class="nm">&lt;/</span><span class="ty">div</span><span class="nm">&gt;</span>
+  <span class="nm">)</span>
+<span class="nm">}</span></code></pre>
+    </div>
+    <div class="code-pane" id="tab-chat">
+<pre><code><span class="kw">import</span> <span class="nm">{ useChatVirtualizer }</span> <span class="kw">from</span> <span class="str">'@gsashish/virtual/react'</span>
+
+<span class="kw">export function</span> <span class="fn">ChatWindow</span><span class="nm">({ messages, loadMore }) {</span>
+  <span class="kw">const</span> <span class="nm">{ items, totalSize, scrollRef, measureRef,</span>
+          <span class="nm">scrollToBottom, isStuckToBottom } =</span> <span class="fn">useChatVirtualizer</span><span class="nm">({</span>
+    <span class="nm">count: messages.length,</span>
+    <span class="nm">estimateSize: () => 56,</span>
+    <span class="nm">onReachedTop: loadMore,  </span><span class="cm">// infinite scroll upward</span>
+  <span class="nm">})</span>
+
+  <span class="kw">return</span> <span class="nm">(</span>
+    <span class="nm">&lt;</span><span class="ty">div</span> <span class="nm">ref={scrollRef} style={{ height: 600, overflow:</span> <span class="str">'auto'</span> <span class="nm">}}&gt;</span>
+      <span class="nm">&lt;</span><span class="ty">div</span> <span class="nm">style={{ height: totalSize, position:</span> <span class="str">'relative'</span> <span class="nm">}}&gt;</span>
+        <span class="nm">{items.map((item) => (</span>
+          <span class="nm">&lt;</span><span class="ty">div</span> <span class="nm">key={item.key} ref={measureRef(item.index)}</span>
+            <span class="nm">style={{ position:</span> <span class="str">'absolute'</span><span class="nm">, top: 0, width:</span> <span class="str">'100%'</span><span class="nm">,</span>
+              <span class="nm">transform:</span> <span class="str">`translateY(${item.start}px)`</span> <span class="nm">}}&gt;</span>
+            <span class="nm">{messages[item.index].text}</span>
+          <span class="nm">&lt;/</span><span class="ty">div</span><span class="nm">&gt;</span>
+        <span class="nm">))}</span>
+      <span class="nm">&lt;/</span><span class="ty">div</span><span class="nm">&gt;</span>
+      <span class="nm">{!isStuckToBottom &amp;&amp;</span>
+        <span class="nm">&lt;</span><span class="ty">button</span> <span class="nm">onClick={scrollToBottom}&gt;</span><span class="str">↓ New messages</span><span class="nm">&lt;/</span><span class="ty">button</span><span class="nm">&gt;}</span>
+    <span class="nm">&lt;/</span><span class="ty">div</span><span class="nm">&gt;</span>
+  <span class="nm">)</span>
+<span class="nm">}</span></code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-band">
+  <div class="cta-inner">
+    <div class="cta-text">
+      <h2>Ready to virtualize?</h2>
+      <p>Open source, MIT licensed. Contributions welcome.</p>
+    </div>
+    <div class="cta-actions">
+      <a class="btn" href="https://github.com/gsashish-code/oss" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a>
+      <a class="btn primary" href="https://www.npmjs.com/package/@gsashish/virtual" target="_blank" rel="noopener">
+        Install from npm →
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo"><span>@gsashish</span>/virtual · v0.1.0</span>
+  <span>Built by <a href="https://github.com/gsashish-code" target="_blank" rel="noopener">G S Ashish</a> · MIT License</span>
+</footer>
+
+<script>
+// ── Demo data ────────────────────────────────────────────────────
+const NAMES = ['Priya Sharma','Arjun Patel','Sneha Reddy','Vikram Singh','Ananya Nair',
+  'Rahul Gupta','Meera Iyer','Aditya Kumar','Kavya Pillai','Ravi Krishnan',
+  'Deepika Joshi','Suresh Menon','Pooja Bhat','Nikhil Rao','Anjali Verma']
+const LABELS = ['User','Admin','Editor','Viewer','Owner']
+const COLORS = ['#c4530a','#7c6fcd','#2a9d8f','#e9c46a','#4a9550','#e76f51','#264653']
+
+function getColor(i) { return COLORS[i % COLORS.length] }
+function getInitials(name) { return name.split(' ').map(w => w[0]).join('') }
+function getHeight(i) { return [48, 56, 72][(i * 2654435761 >>> 0) % 3] }
+
+// ── Virtual scroller ────────────────────────────────────────────
+const ITEM_COUNT = 50_000
+const offsets = new Float32Array(ITEM_COUNT)
+offsets[0] = 0
+for (let i = 1; i < ITEM_COUNT; i++) offsets[i] = offsets[i-1] + getHeight(i-1)
+const TOTAL_SIZE = offsets[ITEM_COUNT-1] + getHeight(ITEM_COUNT-1)
+
+const scroller = document.getElementById('scroller')
+const spacer   = document.getElementById('spacer')
+const domCount = document.getElementById('dom-count')
+const scrollPos= document.getElementById('scroll-pos')
+spacer.style.height = TOTAL_SIZE + 'px'
+
+const rendered = new Map()
+let raf = null
+
+function binarySearch(target) {
+  let lo = 0, hi = ITEM_COUNT - 1
+  while (lo <= hi) {
+    const mid = (lo + hi) >>> 1
+    if (offsets[mid] < target) lo = mid + 1; else hi = mid - 1
+  }
+  return Math.max(0, lo - 1)
+}
+
+function render() {
+  raf = null
+  const st = scroller.scrollTop
+  const vh = scroller.clientHeight
+  const OVERSCAN = 3
+
+  const start = Math.max(0, binarySearch(st) - OVERSCAN)
+  let end = start
+  while (end < ITEM_COUNT - 1 && offsets[end + 1] < st + vh) end++
+  end = Math.min(ITEM_COUNT - 1, end + OVERSCAN)
+
+  for (const [i, el] of rendered) {
+    if (i < start || i > end) { el.remove(); rendered.delete(i) }
+  }
+
+  for (let i = start; i <= end; i++) {
+    if (rendered.has(i)) continue
+    const name  = NAMES[i % NAMES.length]
+    const label = LABELS[i % LABELS.length]
+    const color = getColor(i)
+    const h     = getHeight(i)
+
+    const el = document.createElement('div')
+    el.className = 'demo-item'
+    el.style.cssText = `height:${h}px;transform:translateY(${offsets[i]}px)`
+    el.innerHTML = `
+      <div class="item-avatar" style="background:${color}20;color:${color}">${getInitials(name)}</div>
+      <div class="item-info">
+        <div class="item-name">${name}</div>
+        <div class="item-sub">${label} · user_${i.toString().padStart(5,'0')}@example.com</div>
+      </div>
+      <span class="item-index">#${i.toLocaleString()}</span>`
+    spacer.appendChild(el)
+    rendered.set(i, el)
+  }
+
+  domCount.textContent = rendered.size
+  scrollPos.textContent = Math.round(st).toLocaleString()
+}
+
+scroller.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(render) }, { passive: true })
+render()
+
+// ── Copy install command ────────────────────────────────────────
+function copyInstall(btn) {
+  const text = document.getElementById('install-cmd').textContent
+  const icon = btn.querySelector('svg')
+  navigator.clipboard.writeText(text).then(() => {
+    icon.innerHTML = '<polyline points="4,8 7,11 12,5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>'
+    btn.style.color = 'var(--accent)'
+    setTimeout(() => {
+      icon.innerHTML = '<rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3.5A1.5 1.5 0 014.5 2H11"/>'
+      btn.style.color = ''
+    }, 1500)
+  }).catch(() => {
+    const range = document.createRange()
+    range.selectNode(document.getElementById('install-cmd'))
+    window.getSelection()?.addRange(range)
+  })
+}
+
+// ── Code tabs ──────────────────────────────────────────────────
+function switchTab(btn, id) {
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'))
+  document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'))
+  btn.classList.add('active')
+  document.getElementById(id).classList.add('active')
+}
+</script>

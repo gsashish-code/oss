@@ -1,0 +1,5 @@
+{
+  // Cloudflare Pages project — deploy to virtual.gsashish.in
+  "name": "gsashish-virtual-preview",
+  "pages_build_output_dir": "."
+}
