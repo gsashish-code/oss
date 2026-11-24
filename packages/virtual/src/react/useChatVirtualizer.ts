@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { ChatVirtualizer } from '../core/chat-virtualizer.js'
 import type { VirtualizerOptions, VirtualizerState } from '../types.js'
 
@@ -6,6 +6,7 @@ export interface UseChatVirtualizerResult extends VirtualizerState {
   scrollRef: (el: HTMLElement | null) => void
   measureRef: (index: number) => (el: Element | null) => void
   scrollToBottom: (behavior?: ScrollBehavior) => void
+  /** Reactive: true when the viewport is scrolled to (or within 10px of) the bottom. */
   isStuckToBottom: boolean
 }
 
@@ -22,21 +23,29 @@ export function useChatVirtualizer(
 
   const virtualizer = virtualizerRef.current
 
-  // Track stick-to-bottom state via scroll events
+  // Reactive isStuckToBottom: tracked via local state so it re-renders
+  // immediately when the user scrolls, without waiting for a virtualizer notify.
+  const [isStuckToBottom, setIsStuckToBottom] = useState(true)
+
+  // Stable scroll handler — only recreated when virtualizer instance changes.
+  const handleScroll = useCallback(() => {
+    const el = containerRef.current
+    if (!el) return
+    const stuck = el.scrollHeight - el.scrollTop - el.clientHeight < 10
+    virtualizer.setStickToBottom(stuck)
+    setIsStuckToBottom(stuck)
+  }, [virtualizer])
+
+  // Wire up scroll listener with stable deps to prevent listener gaps in
+  // concurrent mode caused by the missing dependency array.
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-
-    const handleScroll = () => {
-      const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 10
-      virtualizer.setStickToBottom(isAtBottom)
-    }
-
     el.addEventListener('scroll', handleScroll, { passive: true })
     return () => el.removeEventListener('scroll', handleScroll)
-  })
+  }, [handleScroll])
 
-  // Notify virtualizer when count changes
+  // Sync count changes to the virtualizer.
   useEffect(() => {
     if (options.count !== prevCountRef.current) {
       virtualizer.onCountChange(options.count, prevCountRef.current)
@@ -74,11 +83,5 @@ export function useChatVirtualizer(
     [virtualizer],
   )
 
-  return {
-    ...state,
-    scrollRef,
-    measureRef,
-    scrollToBottom,
-    isStuckToBottom: virtualizer.isStuckToBottom(),
-  }
+  return { ...state, scrollRef, measureRef, scrollToBottom, isStuckToBottom }
 }

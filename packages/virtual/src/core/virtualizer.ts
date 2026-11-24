@@ -17,7 +17,7 @@ export class Virtualizer {
 
   private cache = new MeasureCache()
   private offsets: number[] = []
-  private scrollElement: Element | null = null
+  protected scrollElement: Element | null = null
   private rafId: number | null = null
   private observers = new Map<number, ResizeObserver>()
   private listeners: Array<(state: VirtualizerState) => void> = []
@@ -255,7 +255,7 @@ export class Virtualizer {
     return false // future: support horizontal
   }
 
-  private notify(): void {
+  protected notify(): void {
     const state = this.getState()
     for (const listener of this.listeners) {
       listener(state)
