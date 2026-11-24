@@ -20,6 +20,8 @@ export interface VirtualizerOptions {
   onReachedBottom?: () => void
   /** Key extractor for stable item identity */
   getItemKey?: (index: number) => string | number
+  /** Scroll along the horizontal axis (left/width) instead of vertical (top/height) */
+  horizontal?: boolean
 }
 
 export interface VirtualizerState {
