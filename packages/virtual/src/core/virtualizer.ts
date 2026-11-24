@@ -30,6 +30,7 @@ export class Virtualizer {
       overscan: DEFAULT_OVERSCAN,
       scrollMargin: 0,
       reverse: false,
+      horizontal: false,
       ...options,
     }
     this.recomputeOffsets(0)
@@ -252,7 +253,7 @@ export class Virtualizer {
   }
 
   private isHorizontal(): boolean {
-    return false // future: support horizontal
+    return this.options.horizontal ?? false
   }
 
   private notify(): void {
