@@ -17,7 +17,7 @@ export class Virtualizer {
 
   private cache = new MeasureCache()
   private offsets: number[] = []
-  private scrollElement: Element | null = null
+  protected scrollElement: Element | null = null
   private rafId: number | null = null
   private observers = new Map<number, ResizeObserver>()
   private listeners: Array<() => void> = []
@@ -31,6 +31,7 @@ export class Virtualizer {
       overscan: DEFAULT_OVERSCAN,
       scrollMargin: 0,
       reverse: false,
+      horizontal: false,
       ...options,
     }
     this.recomputeOffsets(0)
@@ -259,10 +260,10 @@ export class Virtualizer {
   }
 
   private isHorizontal(): boolean {
-    return false // future: support horizontal
+    return this.options.horizontal ?? false
   }
 
-  private notify(): void {
+  protected notify(): void {
     for (const listener of this.listeners) {
       listener()
     }

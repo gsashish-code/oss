@@ -4,55 +4,55 @@ import type { VirtualizerOptions } from '../types.js'
 /**
  * ChatVirtualizer: reverse-scroll engine for chat UIs.
  *
- * Invariants this class maintains:
- *  - Scroll is anchored to the bottom by default (stick-to-bottom).
- *  - Prepending items (new messages at top) does NOT jump the scroll position.
- *  - New messages appended at bottom auto-scroll only when already at bottom.
+ * Invariants:
+ *  - Scroll anchors to the bottom by default (stick-to-bottom).
+ *  - Prepending items does NOT jump the scroll position.
+ *  - Appended items auto-scroll only when already at the bottom.
  */
 export class ChatVirtualizer extends Virtualizer {
+  // No `scrollElement` field here — the parent's protected field is used directly.
   private stickToBottom = true
   private prevCount: number
-  private scrollElement: Element | null = null
 
   constructor(options: Omit<VirtualizerOptions, 'reverse'>) {
-    super({ ...options, reverse: true, onReachedTop: options.onReachedTop })
+    super({ ...options, reverse: true })
     this.prevCount = options.count
   }
 
   override mount(element: Element): void {
-    this.scrollElement = element
     super.mount(element)
-    // Initial scroll to bottom
     this.scrollToBottom('instant')
   }
 
   /**
-   * Call when item count changes (e.g. new message appended or old messages prepended).
-   * Pass the previous count to determine whether this is a prepend or append.
+   * Call when item count changes.
+   * @param newCount  The new total count.
+   * @param prevCount The count before the update — used to detect append vs prepend.
    */
   onCountChange(newCount: number, prevCount: number): void {
     const delta = newCount - prevCount
     if (delta <= 0) return
 
-    const isAppend = newCount > this.prevCount
     this.prevCount = newCount
+    this.updateOptions({ count: newCount })
 
-    if (isAppend && this.stickToBottom) {
-      // New message came in at the bottom; scroll down to it
+    if (this.stickToBottom) {
       requestAnimationFrame(() => this.scrollToBottom('smooth'))
     }
-    // For prepend: scroll position is preserved by the browser's scroll anchor.
-    // If the browser doesn't support it we compensate in the React hook.
+    // For prepend: browser scroll anchor preserves the visual position.
   }
 
   scrollToBottom(behavior: ScrollBehavior = 'smooth'): void {
-    const el = this.scrollElement
-    if (!el) return
-    el.scrollTo({ top: el.scrollHeight, behavior })
+    // `scrollElement` is protected on the parent class — accessible here.
+    if (!this.scrollElement) return
+    this.scrollElement.scrollTo({ top: this.scrollElement.scrollHeight, behavior })
   }
 
   setStickToBottom(value: boolean): void {
-    this.stickToBottom = value
+    if (this.stickToBottom !== value) {
+      this.stickToBottom = value
+      this.notify()
+    }
   }
 
   isStuckToBottom(): boolean {
