@@ -26,7 +26,7 @@ export function VirtualGrid({
   style,
   ...rest
 }: VirtualGridProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   const {
     items: rowItems,

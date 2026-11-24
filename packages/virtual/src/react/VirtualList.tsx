@@ -21,7 +21,7 @@ export function VirtualList({
   itemClassName,
   ...virtualizerOptions
 }: VirtualListProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
 
   const { items, totalSize, measureRef, scrollRef } = useVirtualizer({
     ...virtualizerOptions,
