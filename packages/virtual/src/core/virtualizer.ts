@@ -20,10 +20,11 @@ export class Virtualizer {
   private scrollElement: Element | null = null
   private rafId: number | null = null
   private observers = new Map<number, ResizeObserver>()
-  private listeners: Array<(state: VirtualizerState) => void> = []
+  private listeners: Array<() => void> = []
   private scrollOffset = 0
   private isScrolling = false
   private scrollTimer: ReturnType<typeof setTimeout> | null = null
+  private cachedState: VirtualizerState | null = null
 
   constructor(options: VirtualizerOptions) {
     this.options = {
@@ -37,7 +38,7 @@ export class Virtualizer {
 
   // ─── Public API ─────────────────────────────────────────────────
 
-  subscribe(listener: (state: VirtualizerState) => void): () => void {
+  subscribe(listener: () => void): () => void {
     this.listeners.push(listener)
     return () => {
       this.listeners = this.listeners.filter((l) => l !== listener)
@@ -114,12 +115,27 @@ export class Virtualizer {
   }
 
   getState(): VirtualizerState {
-    return {
-      items: this.getVirtualItems(),
-      totalSize: this.getTotalSize(),
-      scrollOffset: this.scrollOffset,
-      isScrolling: this.isScrolling,
+    const items = this.getVirtualItems()
+    const totalSize = this.getTotalSize()
+    const prev = this.cachedState
+
+    // Return the same reference when nothing changed so useSyncExternalStore
+    // does not schedule a spurious re-render.
+    if (
+      prev !== null &&
+      prev.totalSize === totalSize &&
+      prev.scrollOffset === this.scrollOffset &&
+      prev.isScrolling === this.isScrolling &&
+      prev.items.length === items.length &&
+      (items.length === 0 ||
+        (prev.items[0]?.start === items[0]?.start &&
+          prev.items[items.length - 1]?.start === items[items.length - 1]?.start))
+    ) {
+      return prev
     }
+
+    this.cachedState = { items, totalSize, scrollOffset: this.scrollOffset, isScrolling: this.isScrolling }
+    return this.cachedState
   }
 
   updateOptions(options: Partial<VirtualizerOptions>): void {
@@ -167,6 +183,8 @@ export class Virtualizer {
     const offset = this.scrollOffset
     const totalSize = this.getTotalSize()
     const viewportSize = this.getViewportSize()
+
+    if (totalSize === 0) return
 
     if (reverse && onReachedTop && offset <= 0) {
       onReachedTop()
@@ -224,24 +242,13 @@ export class Virtualizer {
       this.offsets = new Array(count).fill(0) as number[]
     }
 
-    const start = fromIndex === 0 ? 0 : (this.offsets[fromIndex - 1] ?? 0) + this.getSizeAt(fromIndex - 1)
+    this.cachedState = null
 
+    if (count === 0) return
+
+    // Single O(n - fromIndex) pass. Items before fromIndex are unchanged.
     for (let i = fromIndex; i < count; i++) {
       this.offsets[i] = i === 0 ? 0 : (this.offsets[i - 1] ?? 0) + this.getSizeAt(i - 1)
-    }
-
-    if (fromIndex === 0) this.offsets[0] = 0
-
-    // Recalculate from the given index properly
-    if (fromIndex > 0) {
-      this.offsets[fromIndex] = start
-      for (let i = fromIndex + 1; i < count; i++) {
-        this.offsets[i] = (this.offsets[i - 1] ?? 0) + this.getSizeAt(i - 1)
-      }
-    } else {
-      for (let i = 1; i < count; i++) {
-        this.offsets[i] = (this.offsets[i - 1] ?? 0) + this.getSizeAt(i - 1)
-      }
     }
   }
 
@@ -256,9 +263,8 @@ export class Virtualizer {
   }
 
   private notify(): void {
-    const state = this.getState()
     for (const listener of this.listeners) {
-      listener(state)
+      listener()
     }
   }
 }
